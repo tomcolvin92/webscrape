@@ -1,1 +1,45 @@
-# webscrape
+# UNFCCC BTR table scraper
+
+This repository contains helpers for turning UNFCCC tables into structured pandas DataFrames with normalized dates and document links:
+
+- Biennial Transparency Reports table from the [UNFCCC website](https://unfccc.int/first-biennial-transparency-reports), including BTR, NID, CRT, CTF tables, TERR and FMCP summary.
+- Article 6 CARP reports tables from the [CARP reports page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports), including initial reports, annual information reports, and regular information reports.
+
+## Usage
+
+1. Install dependencies:
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+2. Run the BTR scraper to print the first few rows:
+   ```bash
+   python scrape_btr.py
+   ```
+
+   To save the full table to CSV instead of printing a preview, provide an output path:
+   ```bash
+   python scrape_btr.py --csv btr_table.csv
+   ```
+
+You can also import `scrape_to_dataframe` in your own projects:
+
+```python
+from scrape_btr import scrape_to_dataframe
+
+df = scrape_to_dataframe()
+print(df.head())
+```
+
+## Article 6 CARP reports
+
+Run the CARP scraper to print the first few rows of each of the three tables (initial reports, annual information reports, regular information reports):
+
+```bash
+python scrape_carp.py
+```
+
+To save each table as a CSV (filenames derived from the table headings), supply a directory path:
+
+```bash
+python scrape_carp.py --csv-dir ./carp_tables
+```
