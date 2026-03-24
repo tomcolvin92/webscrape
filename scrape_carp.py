@@ -1,10 +1,12 @@
-"""Scrape CARP Article 6 authorization table into a pandas DataFrame.
+"""Scrape CARP Article 6 tables from both reports and authorizations pages.
 
-The script fetches the Article 6 CARP authorizations table from
-https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/authorizations
-and extracts both the visible cell text and the hyperlinks contained in
-those cells. Link URLs are stored in companion columns with a ``_links``
-suffix for each column, plus a flattened ``urls`` column for convenience.
+The script fetches CARP tables from:
+- https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports
+- https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/authorizations
+
+It extracts visible cell text and hyperlinks from matching tables.
+Link URLs are stored in companion columns with a ``_links`` suffix for each
+column, plus a flattened ``urls`` column for convenience.
 """
 
 from __future__ import annotations
@@ -18,19 +20,25 @@ import requests
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://unfccc.int"
-TARGET_URL = (
-    "https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/"
-    "article-62/carp/authorizations"
-)
+TARGET_URLS: Dict[str, str] = {
+    "reports": (
+        "https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/"
+        "article-62/carp/reports"
+    ),
+    "authorizations": (
+        "https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/"
+        "article-62/carp/authorizations"
+    ),
+}
 
 
-def fetch_html() -> str:
-    """Fetch the CARP authorizations page and return its HTML."""
+def fetch_html(url: str) -> str:
+    """Fetch a CARP page and return its HTML."""
 
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; webscrape-carp/1.0)",
     }
-    response = requests.get(TARGET_URL, headers=headers, timeout=30)
+    response = requests.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     return response.text
 
@@ -128,8 +136,8 @@ def _expanded_rows(table, headers: List[str]) -> List[Dict[str, object]]:
     return rows
 
 
-def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
-    """Parse CARP authorization tables into DataFrames keyed by heading title."""
+def parse_tables(html: str, source_label: str) -> Dict[str, pd.DataFrame]:
+    """Parse CARP tables into DataFrames keyed by source and heading title."""
 
     soup = BeautifulSoup(html, "html.parser")
 
@@ -137,7 +145,9 @@ def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
     for table in soup.find_all("table"):
         headers = [th.get_text(" ", strip=True) for th in table.find_all("th")]
         header_lower = [h.lower() for h in headers]
-        if "party" in header_lower and "documents" in header_lower:
+        if "party" in header_lower and (
+            "documents" in header_lower or "reports" in header_lower
+        ):
             candidate_tables.append((table, headers))
 
     if not candidate_tables:
@@ -153,7 +163,7 @@ def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
                     urls.extend(value)
             row["urls"] = "; ".join(dict.fromkeys(urls)) or None
 
-        title = _heading_for_table(table) or f"Table {idx}"
+        title = f"{source_label}: {_heading_for_table(table) or f'Table {idx}'}"
         if title in dataframes:
             title = f"{title} ({idx})"
         dataframes[title] = pd.DataFrame(rows)
@@ -162,10 +172,24 @@ def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
 
 
 def scrape_carp_tables() -> Dict[str, pd.DataFrame]:
-    """Public helper to fetch and parse CARP report tables into DataFrames."""
+    """Public helper to fetch and parse CARP tables from both CARP pages."""
 
-    html = fetch_html()
-    return parse_tables(html)
+    all_tables: Dict[str, pd.DataFrame] = {}
+    errors: List[str] = []
+    for label, url in TARGET_URLS.items():
+        html = fetch_html(url)
+        try:
+            tables = parse_tables(html, source_label=label)
+        except ValueError as exc:
+            errors.append(f"{label}: {exc}")
+            continue
+        all_tables.update(tables)
+
+    if not all_tables:
+        joined_errors = "; ".join(errors) if errors else "No matching CARP tables found"
+        raise ValueError(joined_errors)
+
+    return all_tables
 
 
 if __name__ == "__main__":
