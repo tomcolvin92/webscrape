@@ -5,6 +5,7 @@ This repository contains helpers for turning UNFCCC tables into structured panda
 - Biennial Transparency Reports table from the [UNFCCC website](https://unfccc.int/first-biennial-transparency-reports), including BTR, NID, CRT, CTF tables, TERR and FMCP summary.
 - Article 6 CARP reports tables from the [CARP reports page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports), including initial reports, annual information reports, and regular information reports.
 - NDC Registry table from the [UNFCCC NDCREG page](https://unfccc.int/NDCREG), including party, title, language, translation marker, version, status, submission date, a single NDR URL, and translation English URL (when available).
+- Long-term Strategies table from the [UNFCCC long-term strategies page](https://unfccc.int/process/the-paris-agreement/long-term-strategies), including party, current submission, current submission URL(s), previous submission, and previous submission URL(s).
 
 ## Usage
 
@@ -57,4 +58,18 @@ To save the full table to CSV:
 
 ```bash
 python scrape_ndcreg.py --csv ndc_registry.csv
+```
+
+## Long-term Strategies table
+
+Run the Long-term Strategies scraper to print the first few rows:
+
+```bash
+python scrape_lts.py
+```
+
+To save the full table to CSV:
+
+```bash
+python scrape_lts.py --csv long_term_strategies.csv
 ```
