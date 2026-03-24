@@ -4,7 +4,7 @@ This repository contains helpers for turning UNFCCC tables into structured panda
 
 - Biennial Transparency Reports table from the [UNFCCC website](https://unfccc.int/first-biennial-transparency-reports), including BTR, NID, CRT, CTF tables, TERR and FMCP summary.
 - Article 6 CARP reports tables from the [CARP reports page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports), including initial reports, annual information reports, and regular information reports.
-- NDC Registry table from the [UNFCCC NDCREG page](https://unfccc.int/NDCREG), including party, title, language, translation marker, version, status, submission date, and additional document URLs.
+- NDC Registry table from the [UNFCCC NDCREG page](https://unfccc.int/NDCREG), including party, title, language, translation marker, version, status, submission date, a single NDR URL, and translation English URL (when available).
 
 ## Usage
 

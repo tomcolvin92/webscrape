@@ -8,6 +8,7 @@ Submission Date, and Additional documents URL(s).
 from __future__ import annotations
 
 import argparse
+import re
 from typing import Dict, List, Optional
 from urllib.parse import urljoin
 
@@ -56,6 +57,30 @@ def _cell_links(cell) -> List[str]:
     return links
 
 
+def _file_urls_from_text(text: str) -> List[str]:
+    """Extract default/files document paths embedded as plain text."""
+
+    matches = re.findall(r"/sites/default/files/[^\s\"<>]+", text)
+    deduped: List[str] = []
+    for match in matches:
+        absolute = urljoin(BASE_URL, match)
+        if absolute not in deduped:
+            deduped.append(absolute)
+    return deduped
+
+
+def _english_translation_url(cell) -> Optional[str]:
+    """Return the first English translation file URL in a translation cell."""
+
+    text = cell.get_text(" ", strip=True)
+    for language, url in re.findall(
+        r"Language\s+(.+?)\s+File\s+(/sites/default/files/[^\s\"<>]+)", text
+    ):
+        if "english" in language.lower():
+            return urljoin(BASE_URL, url)
+    return None
+
+
 def parse_rows(html: str) -> List[Dict[str, Optional[str]]]:
     """Parse the NDC table rows into dictionaries."""
 
@@ -74,16 +99,21 @@ def parse_rows(html: str) -> List[Dict[str, Optional[str]]]:
 
         title_links = _cell_links(cells[1])
         additional_links = _cell_links(cells[7])
+        translation_links = _file_urls_from_text(cells[3].get_text(" ", strip=True))
+        english_translation_url = _english_translation_url(cells[3])
         row = {
             "party": _cell_text(cells[0]),
             "title": _cell_text(cells[1]),
             "language": _cell_text(cells[2]),
             "translation": _cell_text(cells[3]),
+            "translation_english_url": english_translation_url,
             "version": _cell_text(cells[4]),
             "status": _cell_text(cells[5]),
             "submission_date": _cell_text(cells[6]),
             "additional_documents_url": " | ".join(additional_links) or None,
             "document_url": title_links[0] if title_links else None,
+            "ndr_url": title_links[0] if title_links else None,
+            "translation_url": translation_links[0] if translation_links else None,
         }
         rows.append(row)
 
