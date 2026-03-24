@@ -1,10 +1,10 @@
-"""Scrape CARP Article 6 report tables into pandas DataFrames.
+"""Scrape CARP Article 6 authorization table into a pandas DataFrame.
 
-The script fetches the three Article 6 CARP report tables from
-https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports
+The script fetches the Article 6 CARP authorizations table from
+https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/authorizations
 and extracts both the visible cell text and the hyperlinks contained in
 those cells. Link URLs are stored in companion columns with a ``_links``
-suffix for each column.
+suffix for each column, plus a flattened ``urls`` column for convenience.
 """
 
 from __future__ import annotations
@@ -20,12 +20,12 @@ from bs4 import BeautifulSoup
 BASE_URL = "https://unfccc.int"
 TARGET_URL = (
     "https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/"
-    "article-62/carp/reports"
+    "article-62/carp/authorizations"
 )
 
 
 def fetch_html() -> str:
-    """Fetch the CARP reports page and return its HTML."""
+    """Fetch the CARP authorizations page and return its HTML."""
 
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; webscrape-carp/1.0)",
@@ -129,7 +129,7 @@ def _expanded_rows(table, headers: List[str]) -> List[Dict[str, object]]:
 
 
 def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
-    """Parse the three CARP tables into DataFrames keyed by heading title."""
+    """Parse CARP authorization tables into DataFrames keyed by heading title."""
 
     soup = BeautifulSoup(html, "html.parser")
 
@@ -137,17 +137,21 @@ def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
     for table in soup.find_all("table"):
         headers = [th.get_text(" ", strip=True) for th in table.find_all("th")]
         header_lower = [h.lower() for h in headers]
-        if "party" in header_lower and any(
-            key in header_lower for key in ["ndc period", "reports", "report", "status of review"]
-        ):
+        if "party" in header_lower and "documents" in header_lower:
             candidate_tables.append((table, headers))
 
     if not candidate_tables:
-        raise ValueError("No CARP report tables found on the page")
+        raise ValueError("No CARP authorization tables found on the page")
 
     dataframes: Dict[str, pd.DataFrame] = {}
     for idx, (table, headers) in enumerate(candidate_tables, start=1):
         rows = _expanded_rows(table, headers)
+        for row in rows:
+            urls: List[str] = []
+            for key, value in row.items():
+                if key.endswith("_links") and value:
+                    urls.extend(value)
+            row["urls"] = "; ".join(dict.fromkeys(urls)) or None
 
         title = _heading_for_table(table) or f"Table {idx}"
         if title in dataframes:
