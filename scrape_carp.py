@@ -133,10 +133,19 @@ def parse_tables(html: str) -> Dict[str, pd.DataFrame]:
 
     soup = BeautifulSoup(html, "html.parser")
 
+    expected_titles = {
+        "initial reports and updated initial reports",
+        "regular information reports",
+        "annual information reports",
+    }
     candidate_tables: List[Tuple[object, List[str]]] = []
     for table in soup.find_all("table"):
         headers = [th.get_text(" ", strip=True) for th in table.find_all("th")]
         header_lower = [h.lower() for h in headers]
+        title_lower = _heading_for_table(table).lower()
+        if title_lower in expected_titles:
+            candidate_tables.append((table, headers))
+            continue
         if "party" in header_lower and any(
             key in header_lower for key in ["ndc period", "reports", "report", "status of review"]
         ):
@@ -162,6 +171,16 @@ def scrape_carp_tables() -> Dict[str, pd.DataFrame]:
 
     html = fetch_html()
     return parse_tables(html)
+
+
+def scrape_annual_information_reports() -> pd.DataFrame:
+    """Return the Annual information reports table as a DataFrame."""
+
+    tables = scrape_carp_tables()
+    for title, dataframe in tables.items():
+        if "annual information reports" in title.lower():
+            return dataframe
+    raise ValueError("Annual information reports table not found on CARP page")
 
 
 if __name__ == "__main__":

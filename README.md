@@ -45,6 +45,15 @@ To save each table as a CSV (filenames derived from the table headings), supply 
 python scrape_carp.py --csv-dir ./carp_tables
 ```
 
+If you only need annual information reports, import the dedicated helper:
+
+```python
+from scrape_carp import scrape_annual_information_reports
+
+annual_df = scrape_annual_information_reports()
+print(annual_df.head())
+```
+
 ## NDC Registry table
 
 Run the NDC Registry scraper to print the first few rows:
