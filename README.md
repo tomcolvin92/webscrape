@@ -4,6 +4,7 @@ This repository contains helpers for turning UNFCCC tables into structured panda
 
 - Biennial Transparency Reports table from the [UNFCCC website](https://unfccc.int/first-biennial-transparency-reports), including BTR, NID, CRT, CTF tables, TERR and FMCP summary.
 - Article 6 CARP reports tables from the [CARP reports page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports), including initial reports, annual information reports, and regular information reports.
+- NDC Registry table from the [UNFCCC NDCREG page](https://unfccc.int/NDCREG), including party, title, language, translation marker, version, status, submission date, and additional document URLs.
 
 ## Usage
 
@@ -42,4 +43,18 @@ To save each table as a CSV (filenames derived from the table headings), supply 
 
 ```bash
 python scrape_carp.py --csv-dir ./carp_tables
+```
+
+## NDC Registry table
+
+Run the NDC Registry scraper to print the first few rows:
+
+```bash
+python scrape_ndcreg.py
+```
+
+To save the full table to CSV:
+
+```bash
+python scrape_ndcreg.py --csv ndc_registry.csv
 ```
