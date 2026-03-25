@@ -119,3 +119,37 @@ To save the full table to CSV:
 ```bash
 python scrape_dna.py --csv dna_list.csv
 ```
+
+## Download PDFs from scraped URLs
+
+Use `download_unfccc_pdfs.py` when you already have a pandas DataFrame with URLs and a `party` column.
+
+It supports:
+- `https://unfccc.int/documents/<id>` document pages.
+- `https://unfccc.int/node/<id>` URLs that redirect to document pages.
+- Direct `.pdf` links (including URLs with `#page=` fragments).
+
+Example:
+
+```python
+import pandas as pd
+from download_unfccc_pdfs import download_pdfs_from_dataframe
+
+# Assume `df` has columns: party, urls, recommended_name (optional)
+results = download_pdfs_from_dataframe(
+    df,
+    output_root="./downloads",
+    party_col="party",
+    urls_col="urls",
+    filename_col="recommended_name",  # optional
+)
+
+results_df = pd.DataFrame(results)
+print(results_df.head())
+```
+
+Each downloaded file is saved under:
+
+```text
+<output_root>/<party>/<recommended_or_resolved_filename>.pdf
+```
