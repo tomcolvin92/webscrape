@@ -7,6 +7,7 @@ This repository contains helpers for turning UNFCCC tables into structured panda
 - NDC Registry table from the [UNFCCC NDCREG page](https://unfccc.int/NDCREG), including party, title, language, translation marker, version, status, submission date, a single NDR URL, and translation English URL (when available).
 - Long-term Strategies table from the [UNFCCC long-term strategies page](https://unfccc.int/process/the-paris-agreement/long-term-strategies), including party, current submission, current submission URL(s), previous submission, and previous submission URL(s).
 - Article 6 TER report-tracking tables from the [CARP reports page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/reports#Initial-reports-and-updated-initial-reports), including report and TER URL columns.
+- Article 6.2 cooperative approaches from the [CARP cooperative approaches page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-6/article-62/carp/cooperative-approaches), including one row per approach and a selected most-updated report URL.
 - Article 6.4 Designated National Authorities (DNA) tables from the [National Authorities page](https://unfccc.int/process-and-meetings/the-paris-agreement/article-64-mechanism/national-authorities#country_AtoZ), including country, organization & address, contact, and submitted host party participation requirements.
 
 ## Usage
@@ -88,6 +89,21 @@ To save the full table to CSV:
 
 ```bash
 python scrape_ter.py --csv ter_reports.csv
+```
+
+
+## Article 6.2 cooperative approaches
+
+Run the cooperative approaches scraper to print one line per approach with the most updated report URL:
+
+```bash
+python scrape_cooperative_approaches.py
+```
+
+To save the extracted rows to CSV:
+
+```bash
+python scrape_cooperative_approaches.py --csv cooperative_approaches.csv
 ```
 
 ## Article 6.4 DNA list table
